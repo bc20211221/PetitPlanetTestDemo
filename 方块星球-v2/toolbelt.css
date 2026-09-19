@@ -1,0 +1,33 @@
+/* 背包工具栏：工具 + 采集物槽位（点击选中，再点击地图目标执行） */
+.game-stage{position:relative}
+#toolbelt{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);display:flex;gap:6px;padding:7px 10px;background:rgba(6,24,28,.9);border:1px solid #2e5a63;border-radius:12px;z-index:6;box-shadow:0 8px 22px rgba(0,0,0,.5);max-width:calc(100% - 16px);flex-wrap:wrap;justify-content:center}
+.tb-slot{position:relative;width:48px;height:52px;border:1px solid #3a6a74;border-radius:9px;background:linear-gradient(180deg,#123540,#0b2530);color:#dff5ee;cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px;transition:border-color .12s,background .12s}
+.tb-slot i{font-style:normal;font-size:20px;line-height:1;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45))}
+.tb-slot b{font-size:10px;font-weight:700;color:#9fd8c8;font-variant-numeric:tabular-nums;line-height:1}
+.tb-slot b:empty{display:none}
+.tb-slot small{position:absolute;top:2px;right:4px;font-size:8px;color:#6fa8ad;line-height:1}
+.tb-slot:hover{border-color:#6fd3c3}
+.tb-slot.sel{border-color:#ffd166;background:linear-gradient(180deg,#4a3d1e,#241d10);box-shadow:0 0 10px rgba(255,209,102,.35)}
+.tb-slot.sel small{color:#ffd166}
+.tb-slot.up i{color:#ffd97a}
+.tb-slot.hidden{display:none}
+/* ★ 改动 1：铁镐槽位（银灰） */
+.tb-slot.iron{border-color:#8fa3b8;background:linear-gradient(180deg,#2a3540,#16212a)}
+.tb-slot.iron i{color:#dbe6f0}
+/* ★ 改动 2：水桶满水态（水蓝） */
+.tb-slot.full{border-color:#5cbcd6;background:linear-gradient(180deg,#0f3a4c,#082430);box-shadow:0 0 9px rgba(92,188,214,.4)}
+.tb-slot.full i{color:#8fe0f7}
+/* ★ 工具槽位：显示「是否拥有」（✓ = 已拥有；未拥有整槽变暗） */
+.tb-slot b{min-height:11px}
+.tb-slot.tool b{letter-spacing:0}
+.tb-slot.no{opacity:.42;filter:saturate(.5)}
+.tb-slot.no i{filter:none}
+/* ★ 背包按钮：移到右下角，紧挨在「合成」按钮左侧（与 .quick-craft 同排） */
+.quick-bag{position:absolute;right:calc(135px + 53px + 10px);bottom:calc(30px + var(--safe-b,0px));width:53px;height:53px}
+@media(max-width:700px){
+  .quick-bag{right:calc(18px + 44px + 8px);bottom:calc(172px + var(--safe-b,0px));width:44px;height:44px}
+}
+@media(max-width:420px){
+  .quick-bag{bottom:23px}
+}
+@media (max-width:640px){#toolbelt{gap:4px;padding:5px 6px;bottom:8px}.tb-slot{width:40px;height:45px}.tb-slot i{font-size:16px}}

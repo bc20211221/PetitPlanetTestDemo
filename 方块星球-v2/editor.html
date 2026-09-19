@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>方块星球 · 关卡编辑器</title>
+<link rel="stylesheet" href="editor.css?v=20260918-43">
+</head>
+<body>
+<main id="editor">
+  <div class="ed-sync-banner" id="syncBanner">
+    <span class="ed-sync-dot"></span>
+    &#25163;&#21160;&#23548;&#20986;&#27169;&#24335;&#65306;&#25913;&#23436;&#28857;&#12300;&#23548;&#20986;&#12301;&#8594;&#36873;&#25321; DAYS &#26684;&#24335;&#8594;&#36148;&#36827; game.js&#65288;&#24050;&#20851;&#38381;&#33258;&#21160;&#21516;&#27493;&#65289;
+  </div>
+
+  <!-- 顶栏：关卡 Tabs + 全局操作 -->
+  <header class="ed-top">
+    <div class="ed-brand">⛏ 关卡编辑器 <em>方块星球</em></div>
+    <nav id="levelTabs" class="ed-tabs"></nav>
+    <button id="addLevelBtn" class="ed-tab-add" title="基于空模板新建关卡">＋新建</button>
+    <div class="ed-actions">
+      <button id="undoBtn" title="Ctrl+Z">↶ 撤销</button>
+      <button id="redoBtn" title="Ctrl+Y">↷ 重做</button>
+      <button id="importBtn">导入</button>
+      <button id="exportBtn">导出</button>
+      <button id="resetBtn" title="清掉缓存，加载 4 个内置模板">↺ 重置模板</button>
+      <button id="playBtn" class="primary">▶ 试玩本关</button>
+    </div>
+  </header>
+
+  <div class="ed-body">
+
+    <!-- 左侧工具栏 -->
+    <aside class="ed-tools">
+      <div class="ed-layer">
+        <label>编辑层</label>
+        <div id="layerPicker" class="seg">
+          <button data-layer="surface" class="on">地表</button>
+          <button data-layer="dirt">土块</button>
+          <button data-layer="cliff">高台</button>
+          <button data-layer="cave">矿洞</button>
+        </div>
+      </div>
+
+      <div class="ed-group" data-group="edit">
+        <h4>操作</h4>
+        <button class="tool on" data-tool="select" title="点击选中，拖拽移动对象"><span>➚</span>选择/拖动</button>
+        <button class="tool" data-tool="erase" title="删除对象，右键随时可用"><span>✕</span>橡皮擦</button>
+      </div>
+
+      <div class="ed-group">
+        <h4>地形笔刷</h4>
+        <button class="tool" data-tool="grass"><span class="sw sw-grass"></span>草地面</button>
+        <button class="tool" data-tool="dirt"><span class="sw sw-dirt"></span>土块（1层）</button>
+        <button class="tool" data-tool="cliff"><span class="sw sw-cliff"></span>高台</button>
+        <button class="tool" data-tool="cave"><span class="sw sw-cave"></span>矿洞</button>
+        <button class="tool" data-tool="water"><span class="sw sw-water"></span>水面</button>
+        <button class="tool" data-tool="rock"><span>▲</span>岩壁</button>
+        <button class="tool" data-tool="rock_soil"><span>🟩</span>&#23721;&#22303;&#22359;&#65288;&#19981;&#21487;&#25366;&#65289;</button>
+      </div>
+
+      <div class="ed-group">
+        <h4>资源节点</h4>
+        <button class="tool" data-tool="wood"><span>🪵</span>木材</button>
+        <button class="tool" data-tool="stone"><span>🪨</span>石材</button>
+        <button class="tool" data-tool="ore"><span>💎</span>蓝晶矿</button>
+        <button class="tool" data-tool="gem"><span>💠</span>宝石</button>
+        <button class="tool" data-tool="fire_ore"><span>🔥</span>火晶矿</button>
+        <button class="tool" data-tool="berry"><span>🍇</span>&#26524;&#23376;&#65288;&#22238;1&#20307;&#21147;&#65289;</button>
+        <button class="tool" data-tool="iron"><span>⛓</span>铁块（需石镐）</button>
+      </div>
+
+      <div class="ed-group">
+        <h4>地形设施</h4>
+        <button class="tool" data-tool="water_source"><span>💧</span>水源（可盛水）</button>
+        <button class="tool" data-tool="lava"><span>🔥</span>岩浆（可扑灭）</button>
+      </div>
+
+      <div class="ed-group">
+        <h4>单位与设施</h4>
+        <button class="tool" data-tool="farmer"><span>🧑‍🌾</span>村民</button>
+        <button class="tool" data-tool="trapped_farmer"><span>🆘</span>被困村民</button>
+        <button class="tool" data-tool="sheep"><span>🐑</span>绵羊</button>
+        <button class="tool" data-tool="chest"><span>🎁</span>补给箱</button>
+        <button class="tool" data-tool="creeper"><span>💥</span>苦力怕</button>
+        <button class="tool" data-tool="creeper_static"><span>🧌</span>苦力怕（不动）</button>
+        <button class="tool" data-tool="zombie_static"><span>🧟</span>僵尸（不动·需宝剑）</button>
+        <button class="tool" data-tool="crop"><span>🌾</span>麦田</button>
+      </div>
+
+      <div class="ed-group">
+        <h4>特殊</h4>
+        <button class="tool" data-tool="ladder"><span>🪜</span>木梯（高台边缘）</button>
+        <button class="tool" data-tool="hole"><span>🕳</span>矿洞口</button>
+        <button class="tool" data-tool="spawn"><span>🚀</span>降落点</button>
+        <button class="tool" data-tool="goal"><span>⚑</span>终点（到达通关）</button>
+      </div>
+    </aside>
+
+    <!-- 中央画布 -->
+    <section class="ed-stage" id="stage">
+      <canvas id="edCanvas"></canvas>
+      <div id="toast" class="toast"></div>
+
+      <!-- 试玩 HUD -->
+      <div id="playHud" class="play-hud hidden">
+        <div class="ph-row">
+          <button id="playExitBtn" class="ph-exit">✕ 结束试玩</button>
+          <span id="phTimer" class="ph-timer"></span>
+          <span id="phStamina" class="ph-stamina"></span>
+        </div>
+        <div class="ph-row">
+          <span class="ph-bag" id="phBag"></span>
+        </div>
+        <div id="phBelt" class="tb-belt"></div>
+        <div class="ph-row ph-help">点击背包栏选择工具/物资（1-9），再点击地图目标自动走近执行 · 斧头砍树 · 镐子采矿/凿岩 · 铲子挖土 · 选中土块点地面放置 · ⚒ 合成石镐 · ⚡ 交互消耗 1 点体力 · ⚑ 到达终点通关 · Esc 结束</div>
+      </div>
+
+      <div id="playResult" class="modal hidden">
+        <div class="modal-box">
+          <h3 id="prTitle"></h3>
+          <div id="prBody" class="pr-body"></div>
+          <div class="modal-actions">
+            <button id="prBackBtn" class="primary">返回编辑</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右侧属性 -->
+    <aside class="ed-props">
+      <div class="ed-panel">
+        <h4>关卡属性</h4>
+        <label>关卡名<input id="lvName" type="text" maxlength="12"></label>
+        <label>时长（秒）<input id="lvDuration" type="number" min="30" max="600" step="10"></label>
+        <label>体力（点 · 每次交互消耗 1 点）<input id="lvStamina" type="number" min="1" max="99" step="1"></label>
+        <label>任务描述<textarea id="lvMission" rows="3"></textarea></label>
+        <label>提示文案<textarea id="lvTip" rows="3"></textarea></label>
+      </div>
+
+      <div class="ed-panel" id="selPanel">
+        <h4>选中对象</h4>
+        <div id="selBody" class="sel-body"><p class="dim">在「选择/拖动」工具下点击画布中的对象</p></div>
+      </div>
+
+      <div class="ed-panel">
+        <h4>校验 <span id="valSummary" class="val-summary"></span></h4>
+        <ul id="valList" class="val-list"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 底部状态栏 -->
+  <footer class="ed-bottom">
+    <span id="hoverInfo">—</span>
+    <span class="hint">左键绘制/放置 · 按住拖动连续绘制 · 选择模式拖动对象 · 右键快速删除 · Delete 删除选中 · Ctrl+Z / Ctrl+Y 撤销重做 · 数据自动保存</span>
+  </footer>
+
+  <!-- 导出弹窗 -->
+  <div id="exportModal" class="modal hidden">
+    <div class="modal-box wide">
+      <h3>导出关卡</h3>
+      <div class="seg" id="exportMode">
+        <button data-mode="json" class="on">完整 JSON（可再导入）</button>
+        <button data-mode="days">单关 DAYS 片段（贴回 game.js）</button>
+        <button data-mode="all-days">⭐ 全部 DAYS 数组（整体替换 game.js）</button>
+      </div>
+      <p id="exportNote" class="dim small"></p>
+      <textarea id="exportArea" rows="14" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button id="exportCopyBtn" class="primary">复制到剪贴板</button>
+        <button id="exportDownloadBtn">下载 .json</button>
+        <button id="exportCloseBtn">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导入弹窗 -->
+  <div id="importModal" class="modal hidden">
+    <div class="modal-box wide">
+      <h3>导入关卡 JSON</h3>
+      <p class="dim small">粘贴由本编辑器导出的「完整 JSON」，将作为新关卡加入列表。</p>
+      <textarea id="importArea" rows="14" spellcheck="false" placeholder='在此粘贴 JSON…'></textarea>
+      <div class="modal-actions">
+        <button id="importConfirmBtn" class="primary">导入为新关卡</button>
+        <button id="importCloseBtn">取消</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+<script src="editor.js?v=20260918-45" id="mainScript"></script>
+<script>
+// 加载失败时（file:// 协议下 <script src> 常被 Chromium 视为 "Unsafe attempt" 阻断）的多重降级：
+//   1) 先看 mainScript 是否已成功执行（_edBooted 标记）
+//   2) 否则尝试 XHR 同步加载 + Function eval
+//   3) 否则显示"加载失败 + 4 关 JSON + 启动 server 指引"
+(function(){
+  if(window._edBooted)return;  // 主 <script> 已成功
+  function showFail(reason){
+    document.body.innerHTML =
+      '<div style="position:fixed;inset:20px;padding:24px;background:#1a1a1a;color:#eaeaea;font:13px monospace;overflow:auto;border:2px solid #f44;border-radius:8px;z-index:99999">'+
+      '<h2 style="color:#f44;margin:0 0 12px">editor.js 加载失败</h2>'+
+      '<p>原因：'+reason+'</p>'+
+      '<p><b>推荐方案：</b>双击 <code>启动本地服务器.bat</code>（项目根目录），浏览器会自动打开 <code>http://localhost:8765/editor.html</code>。</p>'+
+      '<p><b>其他方案：</b></p>'+
+      '<ol>'+
+      '<li>浏览器快捷方式 → 属性 → 目标后加 <code>--allow-file-access-from-files --disable-web-security</code>，重启浏览器后再双击 editor.html</li>'+
+      '<li>右键 editor.html → 打开方式 → 用系统浏览器（Edge/Chrome），不要用 IDE 内嵌浏览器</li>'+
+      '</ol>'+
+      '</div>';
+  }
+  try {
+    var x=new XMLHttpRequest();
+    x.open('GET','editor.js?v=20260918-45',false);
+    x.send();
+    if(x.status===200||x.status===0){
+      (new Function(x.responseText))();
+      return;
+    }
+    showFail('XHR 状态码 '+x.status+'（file:// 协议下浏览器拒绝加载本地资源）');
+  } catch(e) {
+    showFail((e&&e.message)||String(e));
+  }
+})();
+</script>
+</body>
+</html>

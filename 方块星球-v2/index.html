@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0c5964">
+  <title>Minecraft × 星布谷地｜偶遇方块星球</title>
+  <link rel="stylesheet" href="style.css?v=20260918-14">
+  <link rel="stylesheet" href="encounters.css?v=20260918-53">
+  <link rel="stylesheet" href="mobile-ui.css?v=20260917-4d">
+  <link rel="stylesheet" href="soil.css?v=20260917-4d">
+  <link rel="stylesheet" href="toolbelt.css?v=20260918-50">
+  <style>
+    #bootScreen{position:fixed;inset:0;background:#0c3947;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;font-family:system-ui;gap:14px;text-align:center;padding:24px}
+    #bootScreen .spin{width:46px;height:46px;border:4px solid #fff3;border-top-color:#f7dd81;border-radius:50%;animation:_sp 1s linear infinite}
+    @keyframes _sp{to{transform:rotate(360deg)}}
+    #bootScreen.ok{background:#0e6b59}
+    #bootScreen.err{background:#a82a1e;flex-direction:column}
+    #bootScreen.err pre{background:#00000055;padding:12px 16px;border-radius:8px;max-width:90vw;white-space:pre-wrap;font:13px/1.5 monospace;color:#fff;text-align:left}
+    #bootScreen .hint{font-size:14px;opacity:.85;max-width:560px;line-height:1.6}
+    #bootScreen button{background:#f7dd81;color:#1a3a4a;border:0;padding:10px 18px;border-radius:8px;font-weight:900;cursor:pointer;font-size:14px}
+    #bootScreen button:hover{background:#fff0ae}
+    #bootScreen.hidden{display:none}
+  </style>
+</head>
+<body>
+  <div id="bootScreen"><div class="spin"></div><div>正在加载方块星球…</div><div class="hint" id="bootHint">如果长时间停留，请按 <kbd>Ctrl+Shift+R</kbd> 强刷，或按下方按钮强制清缓存。</div><button id="forceCleanBtn" style="margin-top:14px">🔧 强制清缓存 + 重载</button></div>
+  <main id="app">
+    <section id="home" class="home" aria-label="偶遇方块星球活动页面">
+      <div class="home-shade"></div>
+      <header class="home-top"><div class="brand"><span class="brand-mark">✦</span> Minecraft <i>×</i> 星布谷地</div><div class="event-tag">星海旅行限时区域</div></header>
+      <div class="home-content">
+        <div class="home-copy">
+          <h1>偶遇！<br><em>方块星球</em></h1>
+          <p>在茫茫星海中，出现了一个奇特的“方形”星球，听说那里有着奇异丰富的资源和一群“方头方脑”的居民们，一起去打个招呼吧！</p>
+          <div class="home-actions"><button id="startTravel" class="primary">开始旅行 <span>➜</span></button>
+        </div>
+        <div class="day-selector" aria-label="选择关卡">
+          <div class="selector-heading"> </div>
+          <div class="days">
+            <button class="day-card selected" data-day="0"><b>DAY 1</b><strong>第一天</strong><span class="day-status">可前往</span></button>
+            <button class="day-card locked" data-day="1"><b>DAY 2</b><strong>第二天</strong><span class="day-status">未解锁</span></button>
+            <button class="day-card locked" data-day="2"><b>DAY 3</b><strong>第三天</strong><span class="day-status">未解锁</span></button>
+            <button class="day-card locked" data-day="3"><b>DAY 4</b><strong>第四天</strong><span class="day-status">未解锁</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="game" class="game hidden" aria-label="方块星球游戏页面">
+      <header class="game-header">
+        <button id="backHome" class="text-button" aria-label="返回活动页">‹</button>
+        <div class="game-heading"><div class="eyebrow" id="gameDay">DAY 1</div><h2 id="gameTitle">断桥初访</h2></div>
+        <div class="clock"><span>&#26102;&#38388;</span><strong id="timer">&#8734;</strong><div class="time-track"><div id="timebar"></div></div></div>
+        <div class="stamina" aria-label="体力点"><span>体力</span><strong id="staminaLabel">10/10</strong><div class="stamina-track"><div id="staminaBar"></div></div></div>
+        <button id="return" class="hud-round" aria-label="结束并返程">⌂<small>返程</small></button>
+        <button id="openTutorial" class="hud-round" aria-label="查看新手指南">?<small>指南</small></button>
+      </header>
+      <div class="game-main">
+        <div class="game-stage">
+          <canvas id="world" aria-label="2.5D方块星球地图"></canvas>
+          <div class="map-top"><span class="map-chip" id="layerLabel">地表层</span><span class="map-chip" id="goalLabel">目标：采集蓝晶矿</span></div>
+          <span id="statusLine" hidden></span>
+          <div id="toast" class="toast" role="status"></div>
+        </div>
+        <aside class="sidebar">
+          <div class="side-card mission"><h3 id="missionTitle">采集蓝晶矿</h3><p id="missionText" hidden></p><div class="progress-line"><span>进度</span><strong id="goalProgress">0 / 1</strong></div></div>
+          <div class="controls-card"><button id="openBag" class="hud-round quick-bag" aria-label="打开背包">▣<small>背包</small></button><button id="quickCraft" class="hud-round quick-craft" aria-label="打开合成">⚒<small>合成</small></button><button id="interact" class="interact"><small>E</small><span id="actionLabel">交互</span></button><div class="dpad" aria-label="虚拟方向键"><button data-move="0,-1" aria-label="上移">▲</button><button data-move="-1,0" aria-label="左移">◀</button><button data-move="0,1" aria-label="下移">▼</button><button data-move="1,0" aria-label="右移">▶</button></div></div>
+        </aside>
+      </div>
+    </section>
+
+    <div id="tutorialOverlay" class="bag-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="tutTitle"><section class="bag-panel tut-panel"><header><div><h2 id="tutTitle">新手指南</h2></div></header><ul class="tut-list"><li><b>移动</b><span>鼠标点击目标地格，或按 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动</span></li><li><b>采集 / 交互</b><span>按 <kbd>E</kbd> 采集、对话、交互</span></li><li><b>合成</b><span>按 <kbd>M</kbd> 或右下 ⚒ 按钮打开合成面板）</span></li><li><b>体力</b><span>采集、合成、攻击消耗1体力，果实恢复1体力。每关体力有限，合理分配吧！</span></li></ul><div class="tut-actions"><button id="tutStart" class="primary">开始探索</button></div></section></div>
+
+    <div id="bagOverlay" class="bag-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="bagTitle"><section class="bag-panel"><header><div><h2 id="bagTitle">旅行背包</h2></div><button id="closeBag" class="panel-close" aria-label="关闭背包">×</button></header><div class="items"><div><span><i class="dirt-icon"></i></span><b id="dirt">0</b><small>土块</small></div><div><span>🪵</span><b id="wood">0</b><small>木材</small></div><div><span>🪨</span><b id="stone">0</b><small>石材</small></div><div><span>⛓</span><b id="iron">0</b><small>铁块</small></div><div><span>💎</span><b id="gem">0</b><small>宝石</small></div><div><span>🔥</span><b id="fireOre">0</b><small>火晶矿</small></div></div><div id="encounterBag" class="encounter-bag"></div><h3>随身合成</h3><button id="craftAxe" class="craft">合成斧头 <small>土块×1+石材×1</small></button><button id="craftPick" class="craft">合成石镐 <small>木材×1+石材×1</small></button><button id="craftIronPick" class="craft">合成铁镐 <small>&#38081;&#22359;&#215;2+&#26408;&#26448;&#215;1</small></button><button id="craftBucket" class="craft">合成水桶 <small>铁块×1+木材×1</small></button><button id="craftSword" class="craft">合成宝剑 <small>铁块×1+宝石×1</small></button></section></div>
+
+    <div id="npcDialogue" class="npc-dialogue hidden" role="dialog" aria-modal="true" aria-labelledby="encounterName"><div class="dialogue-backdrop"></div><div class="dialogue-character"><canvas id="npcPortrait" width="260" height="260" aria-label="对话角色"></canvas></div><section class="speech-bubble"><div class="speaker-tag" id="encounterName">农民村民</div><button id="closeDialogue" class="dialogue-close" aria-label="结束对话">×</button><p id="encounterText" aria-live="polite"></p><small id="encounterNote"></small><div class="dialogue-actions"><button id="trade" class="craft hidden">小麦 ×3 → 绿宝石 ×1</button><div id="inviteChoice" class="hidden invite-choice"><button id="inviteYes" class="primary">接受</button><button id="inviteNo" class="light-button">婉拒</button></div><button id="dialogueAction" class="primary hidden">互动</button><button id="dialogueContinue" class="light-button">结束对话</button></div><span class="dialogue-pause">已暂停</span></section></div>
+
+    <div id="result" class="result hidden" role="dialog" aria-modal="true" aria-labelledby="resultTitle"><div class="result-panel"><div class="result-icon" id="resultIcon">✦</div><div class="card-kicker" id="resultDay">DAY 1 · 旅行结算</div><h2 id="resultTitle">满载而归！</h2><p id="resultText"></p><div class="result-items" id="resultItems"></div><div class="result-actions"><button id="nextDay" class="primary">前往下一天</button><button id="retry" class="light-button">再玩一次</button><button id="resultHome" class="light-button">返回活动页</button></div></div></div>
+  </main>
+  <script src="game.js?v=20260918-57"></script>
+  <script>
+    // 内联缓存清理 — 不依赖外部脚本，浏览器强刷一定会执行
+    (function(){
+      function deepClean(){
+        try{
+          var cleaned=[];
+          for(var i=localStorage.length-1;i>=0;i--){
+            var k=localStorage.key(i);
+            if(k && (k.indexOf('blockPlanet')>=0 || k.indexOf('Editor')>=0 || k.indexOf('ed_')===0 || k.indexOf('planet')>=0 || k.indexOf('maxUnlocked')>=0)){
+              cleaned.push(k);
+              localStorage.removeItem(k);
+            }
+          }
+          try{sessionStorage.clear()}catch(_){}
+          console.info('[cache] 已清理',cleaned.length,'个键:',cleaned);
+          // 同时强制清理浏览器 HTTP 缓存
+          if('caches' in window){
+            caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k)})});
+          }
+        }catch(e){console.warn('[cache] 清理失败',e)}
+      }
+      window.__forceClean=deepClean;
+      deepClean();
+      // 手动清理按钮
+      var btn=document.getElementById('forceCleanBtn');
+      if(btn) btn.onclick=function(){
+        deepClean();
+        // 强制重新加载（绕过 HTTP 缓存）
+        location.reload(true);
+      };
+    })();
+  </script>
+</body>
+</html>
