@@ -25,9 +25,9 @@
 /* ★ 背包按钮：移到右下角，紧挨在「合成」按钮左侧（与 .quick-craft 同排） */
 .quick-bag{position:absolute;right:calc(135px + 53px + 10px);bottom:calc(30px + var(--safe-b,0px));width:53px;height:53px}
 @media(max-width:700px){
-  .quick-bag{right:calc(18px + 44px + 8px);bottom:calc(172px + var(--safe-b,0px));width:44px;height:44px}
+  .quick-bag{right:calc(14px + 42px + 8px);bottom:calc(146px + var(--safe-b,0px));width:42px;height:42px}
 }
 @media(max-width:420px){
-  .quick-bag{bottom:23px}
+  .quick-bag{right:calc(14px + 72px + 10px);bottom:calc(62px + var(--safe-b,0px))}
 }
-@media (max-width:640px){#toolbelt{gap:4px;padding:5px 6px;bottom:8px}.tb-slot{width:40px;height:45px}.tb-slot i{font-size:16px}}
+@media (max-width:640px){#toolbelt{gap:4px;padding:5px 6px;bottom:calc(6px + var(--safe-b,0px));flex-wrap:nowrap;overflow-x:auto;max-width:calc(100% - 12px);scrollbar-width:none}#toolbelt::-webkit-scrollbar{display:none}.tb-slot{width:38px;height:44px;flex:0 0 auto}.tb-slot i{font-size:15px}}

@@ -65,8 +65,9 @@
     pick(){tone(560,.06,'sine',.05)},                                         // 选中槽位
     win(){[523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,.16,'triangle',.07),i*95))} // 通关
   };
-  let maxUnlocked=4,selectedDay=0,day=0,phase='home',remaining=0,stamina=0,staminaMax=0,player={x:1,y:4,z:0},facing=[1,0],focus=null,walk=[],nodes=new Map(),bridges=new Set(),brokenRocks=new Set(),ladderBuilt=false,holeDug=false,pick=false,extras={wheat:0,emerald:0,axe:false,bucket:false,waterBucket:false,sword:false,ironPickaxe:false,trappedSaved:false,invited:false,trappedTalk:false,creeperDefeated:false,defeatedCreepers:[],rebuildPromise:false,metFarmer:false},_extinguished=new Set(),held='hand',pendingAction=null,bag={wood:0,stone:0,ore:0,gem:0,fireOre:0,dirt:0,berry:0,iron:0},tickHandle=null,lastStep=0,toastHandle=null,bridgeHint=false,holeConfirmAt=0,farmerTalk=0;
-  // ★ 暂时取消关卡锁定：maxUnlocked 固定为 4，任意关卡都能直接体验（不再读取 localStorage 进度）
+  let maxUnlocked=1,selectedDay=0,day=0,phase='home',remaining=0,stamina=0,staminaMax=0,player={x:1,y:4,z:0},facing=[1,0],focus=null,walk=[],nodes=new Map(),bridges=new Set(),brokenRocks=new Set(),ladderBuilt=false,holeDug=false,pick=false,extras={wheat:0,emerald:0,axe:false,bucket:false,waterBucket:false,sword:false,ironPickaxe:false,trappedSaved:false,invited:false,trappedTalk:false,creeperDefeated:false,defeatedCreepers:[],rebuildPromise:false,metFarmer:false},_extinguished=new Set(),held='hand',pendingAction=null,bag={wood:0,stone:0,ore:0,gem:0,fireOre:0,dirt:0,berry:0,iron:0},tickHandle=null,lastStep=0,toastHandle=null,bridgeHint=false,holeConfirmAt=0,farmerTalk=0;
+  // ★ 关卡逐个解锁：通关当天才解锁下一关，进度存 localStorage（最多 4 关）
+  try{const _u=parseInt(localStorage.getItem('blockPlanetUnlocked'));if(_u>=1&&_u<=4)maxUnlocked=_u}catch{}
   function baseTerrain(x,y){if(!inb(x,y))return null;const d=DAYS[day];if(d.cave.some(p=>p[0]===x&&p[1]===y))return -2;if(d.cliff.some(p=>p[0]===x&&p[1]===y))return 2;return 0}
   function terrain(x,y){return soilHeights.has(key(x,y))?soilHeights.get(key(x,y)):baseTerrain(x,y)}
   function isWater(x,y){
@@ -132,6 +133,11 @@
     held='hand';
     pendingAction=null;
     bag={wood:0,stone:0,ore:0,gem:0,fireOre:0,dirt:0,berry:0,iron:0};
+    if(i===3){ // ★ DAY4 重建日：全工具直接持有，资源拉满 99（自由建造）
+      pick=true;
+      extras.axe=extras.bucket=extras.sword=extras.ironPickaxe=true;
+      bag={wood:99,stone:99,ore:99,gem:99,fireOre:99,dirt:99,berry:99,iron:99};
+    }
     $('gameDay').textContent=`DAY ${i+1}`;
     $('gameTitle').textContent=d.name;
     $('missionTitle').textContent='任务目标';
@@ -153,9 +159,6 @@
   function goalState(){const g=GOALS[day]||GOALS[1];const got=g.ids.reduce((s,id)=>s+(bag[id]||0),0);return{g,got,done:!!g.free||got>=g.need}}
   function updateUI(){
     const d=DAYS[day];
-    // ★ 时限已全部取消：remaining 恒为 -1，这里恒定显示 ∞（原有倒计时分支已移除）
-    if($('timer'))$('timer').textContent='\u221E';
-    if($('timebar'))$('timebar').style.width='100%';
     const sp=$('staminaBar'),sl=$('staminaLabel');
     if(sp){sp.style.width=(staminaMax?stamina/staminaMax*100:0)+'%';sp.classList.toggle('low',stamina>0&&stamina<=3);sl.textContent=`${stamina}/${staminaMax}`;sl.classList.toggle('low',stamina>0&&stamina<=3);const wrap=sp.parentElement;if(wrap)wrap.classList.toggle('exhausted',stamina<=0)}
     for(const v of ['wood','stone','ore','gem','fireOre','berry','iron']){const el=$(v);if(el)el.textContent=bag[v]}
@@ -479,7 +482,7 @@
     const home=pos(1,4,0,g);ctx.font='bold 13px system-ui';ctx.fillStyle='#e5fff0';ctx.textAlign='center';ctx.fillText('降落点',home.x,home.y+g.tw*.52)
   }
   function hit(clientX,clientY){const rect=canvas.getBoundingClientRect(),px=clientX-rect.left,py=clientY-rect.top,g=geo();let best=null,score=Infinity;for(let y=0;y<H;y++)for(let x=0;x<W;x++){const z=terrain(x,y),raised=!!atNode(x,y,z)||isRock(x,y,z),p=pos(x,y,z+(raised?1:0),g),dx=(px-p.x)/(g.tw*.5),dy=(py-p.y)/(g.th*.5),v=Math.abs(dx)+Math.abs(dy);if(v<score){score=v;best={x,y}}}return score<1.5?best:null}
-  function resize(){let w=canvas.clientWidth||canvas.parentElement.clientWidth||800,h=canvas.clientHeight||canvas.parentElement.clientHeight||600;if(w<400)w=800;if(h<300)h=600;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);render()}
+  function resize(){let w=canvas.clientWidth||canvas.parentElement.clientWidth||800,h=canvas.clientHeight||canvas.parentElement.clientHeight||600;if(w<10)w=800;if(h<10)h=600;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);render()}
   canvas.addEventListener('click',e=>{const p=hit(e.clientX,e.clientY);if(p)clickTile(p.x,p.y)});
   document.addEventListener('keydown',e=>{if(phase!=='playing')return;if(uiMode){if(e.key==='Escape'){e.preventDefault();closeMobilePanels()}return}const dirs={w:[0,-1],W:[0,-1],ArrowUp:[0,-1],a:[-1,0],A:[-1,0],ArrowLeft:[-1,0],s:[0,1],S:[0,1],ArrowDown:[0,1],d:[1,0],D:[1,0],ArrowRight:[1,0]};if(dirs[e.key]){e.preventDefault();move(...dirs[e.key])}else if(e.key==='e'||e.key==='E'||e.key===' '){e.preventDefault();interact()}else if(e.key==='m'||e.key==='M'){e.preventDefault();showBag()}else if(e.key>='1'&&e.key<='9'){const s=BELT[+e.key-1];if(s)setHeld(s.id)}});
   document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>move(...b.dataset.move.split(',').map(Number)));
@@ -492,11 +495,11 @@
   const encounterTitles=['启程','村民','探险','重建'];
   const encounterHints=['制作斧头 → 砍木 → 建桥过河 → 采宝石 → 合成石镐 → 采蓝晶矿 → 终点。','走到被困村民身边与他对话即可救出他 → 两轮对话后获赠火晶矿 → 前往终点。（岩浆挡路时：挖土块+采石→合成斧头→砍树→合成石镐→采铁块→合成水桶→盛水扑灭）','前往矿洞，探索真相吧。先把土块挖出 → 采石块 → 合成斧头 → 砍树取木材 → 合成石镐 → 用石镐挖开右下角的矿洞口进入矿洞 → 到达终点。','与村民对话，答应「可以帮我重建我的世界吗？」→ 走到村中央的终点 ⛳，二次确认后完成旅行。'];
   function actorAt(x,y,z){return actors.find(a=>a.alive!==false&&a.x===x&&a.y===y&&a.z===z)}
-  function resetEncounters(){encounterTime=0;lastFrame=null;blast=null;tradeOpen=false;extras={wheat:0,emerald:0,axe:false,bucket:false,waterBucket:false,sword:false,trappedSaved:false,invited:false,trappedTalk:false,creeperDefeated:false,defeatedCreepers:[],rebuildPromise:false,metFarmer:false};_extinguished=new Set();crops=new Map();actors=[];hitFlash=new Map();
+  function resetEncounters(){encounterTime=0;lastFrame=null;blast=null;tradeOpen=false;extras={wheat:0,emerald:0,axe:false,bucket:false,waterBucket:false,sword:false,trappedSaved:false,invited:false,trappedTalk:false,creeperDefeated:false,defeatedCreepers:[],rebuildPromise:false,metFarmer:false};if(day===3)extras.axe=extras.bucket=extras.sword=extras.ironPickaxe=true;_extinguished=new Set();crops=new Map();actors=[];hitFlash=new Map();
     const d=DAYS[day];
     if(d.crops)for(const [x,y] of d.crops)crops.set(key(x,y),{x,y,z:0,readyAt:0});
     if(d.actors)for(const [type,x,y,z] of d.actors)actors.push({type,x,y,z,alive:type==='creeper'?true:undefined,opened:false,sheared:false,regrowAt:0,grassReadyAt:0,fuse:0,nextMove:0,happyUntil:0});
-    $('encounterName').textContent=encounterTitles[day];$('encounterText').textContent=encounterHints[day];$('encounterNote').textContent=day===0?'活动简化交易：3 小麦换 1 绿宝石；作物生长已加速。':day===1?'活动内羊吃草与长草时间已加速；无需伤害绵羊。':day===2?'矿洞层：用「石镐」点右下角洞口挖开入口，再点一次进入；洞内僵尸可用「宝剑」（铁块×1+宝石×1）击退。':'自由探索：体力极宽裕，走到中央 ⛳ 终点即可完成 4 天旅行。';
+    $('encounterName').textContent=encounterTitles[day];$('encounterText').textContent=encounterHints[day];$('encounterNote').textContent=day===0?'活动简化交易：3 小麦换 1 绿宝石；作物生长已加速。':day===1?'活动内羊吃草与长草时间已加速；无需伤害绵羊。':day===2?'矿洞层：用「石镐」点右下角洞口挖开入口，再点一次进入；洞内僵尸可用「宝剑」（铁块×1+宝石×1）击退。':'自由建造日：已附送全套工具，背包资源 ×99，走到中央 ⛳ 终点即可完成 4 天旅行。';
   }
   function refreshEncounterUI(){if(!$('encounterBag'))return;const labels=[['wheat','🌾 小麦'],['emerald','💚 绿宝石']];$('encounterBag').innerHTML=labels.filter(([k])=>day<=1&&(extras[k]>0||day===0)).map(([k,label])=>`<span>${label} ×${extras[k]}</span>`).join('');$('trade').classList.toggle('hidden',!tradeOpen||day!==0);const farmer=actors.find(a=>a.type==='farmer');$('trade').disabled=phase!=='playing'||extras.wheat<3||!farmer||player.z!==farmer.z||!adjacent8(farmer.x,farmer.y);}
   function tradeWheat(){const farmer=actors.find(a=>a.type==='farmer');if(phase!=='playing'||!farmer||player.z!==farmer.z||!adjacent8(farmer.x,farmer.y)){say('先靠近村民');return}if(extras.wheat<3){say('小麦不足');return}extras.wheat-=3;extras.emerald++;farmer.happyUntil=encounterTime+1.4;$('encounterText').textContent='「嗯哼！」交易完成：绿宝石 +1。';say('绿宝石 +1');updateUI();render();}
@@ -718,7 +721,7 @@
     if(placed>0){if(placed===1&&soilWater.has(k)){soilWater.delete(k);soilHeights.delete(k)}else soilHeights.set(k,h-1);if(placed===1)soilPlaced.delete(k);else soilPlaced.set(k,placed-1)}else soilHeights.set(k,h-1);bag.dirt=(bag.dirt||0)+1;say('土块 +1');updateUI();render();return true}
   function soilPlaceAt(x,y){if(phase!=='playing'||uiMode)return false;const error=soilCheck('place',x,y);if(error){say(error);return false}if(!ensureStamina())return false;walk=[];const k=key(x,y),h=terrain(x,y),placed=soilPlaced.get(k)||0;
     if(isWater(x,y)){soilWater.add(k);soilHeights.set(k,0)}else soilHeights.set(k,h+1);soilPlaced.set(k,placed+1);bag.dirt--;say('土块 −1');updateUI();render();return true}
-  const soilReset=resetGame;resetGame=function(i){soilHeights=new Map();soilPlaced=new Map();soilWater=new Set();rockSoil=new Set();soilReset(i);bag.dirt=0;
+  const soilReset=resetGame;resetGame=function(i){soilHeights=new Map();soilPlaced=new Map();soilWater=new Set();rockSoil=new Set();soilReset(i);bag.dirt=(day===3?99:0);
     // ★ 根据 DAYS[day].dirt 初始化预设土块地形（玩家初始可铲的 dirt 格子）
     const dd=DAYS[day];
     if(dd&&dd.dirt&&dd.dirt.length){for(const [x,y] of dd.dirt)soilHeights.set(key(x,y),1)} // terrain height only: keep the same look as the editor (no "player-placed" tint)
@@ -731,19 +734,19 @@
   const soilFinish=finish;finish=function(reason){if(phase!=='playing')return;soilFinish(reason);if(bag.dirt)$('resultItems').innerHTML+=`<span>土块 ×${bag.dirt}</span>`};
   /* ===== 背包工具栏：选中工具/物资后点击地图目标，自动走近并执行 ===== */
   const BELT=[
-    {id:'hand',icon:'✋',name:'空手',hint:'点击村民/麦田/梯子/洞口/宝箱交互；徒手可采石块/果子（果子直接 +1 体力）'},
-    {id:'shovel',icon:'🪏',name:'铲子',hint:'点击相邻地块挖土（土块 +1）'},
-    {id:'axe',icon:'🪓',name:'斧头',hint:'点击树木砍伐（木材 +1）'},
-    {id:'pick',icon:'⛏',name:'石镐',hint:'凿岩壁/挖洞/采铁块·蓝晶矿（合成：木材×1+石材×1）'},
-    {id:'ironPick',icon:'⛏',name:'铁镐',hint:'开采宝石·火晶矿（合成：铁块×2+木材×1）'},
-    {id:'bucket',icon:'🪣',name:'水桶',hint:'点水源盛水 → 点岩浆扑灭（合成：铁块×1+木材×1）'},
-    {id:'sword',icon:'🗡',name:'宝剑',hint:'选中后点僵尸攻击，消耗 3 体力（合成：铁块×1+宝石×1）'},
-    {id:'wood',icon:'🪵',name:'木材',hint:'点击河面搭桥，或点击金色施工点建木梯'},
-    {id:'stone',icon:'🪨',name:'石材',hint:'点击金色施工点建石阶'},
-    {id:'ore',icon:'💎',name:'蓝晶矿',hint:'任务目标'},
-    {id:'gem',icon:'💠',name:'宝石',hint:'任务目标（需铁镐）'},
-    {id:'dirt',icon:'<i class="dirt-icon"></i>',name:'土块',hint:'点击相邻地面放置土块'},
-    {id:'iron',icon:'⛓',name:'铁块',hint:'消耗/显示资源'}
+    {id:'hand',icon:'✋',name:'空手',hint:'可采石块/果子'},
+    {id:'shovel',icon:'🪏',name:'铲子',hint:'点击相邻地块挖土'},
+    {id:'axe',icon:'🪓',name:'斧头',hint:'可砍伐树木'},
+    {id:'pick',icon:'⛏',name:'石镐',hint:'可开采铁矿'},
+    {id:'ironPick',icon:'⛏',name:'铁镐',hint:'可开采宝石、火晶矿'},
+    {id:'bucket',icon:'🪣',name:'水桶',hint:'点水源盛水'},
+    {id:'sword',icon:'🗡',name:'宝剑',hint:'选中后攻击，消耗 3 体力'},
+    {id:'wood',icon:'🪵',name:'木材',hint:'点击河面搭桥'},
+    {id:'stone',icon:'🪨',name:'石材',hint:'可合成工具'},
+    {id:'ore',icon:'💎',name:'蓝晶矿',hint:'稀有资源'},
+    {id:'gem',icon:'💠',name:'宝石',hint:'稀有资源'},
+    {id:'dirt',icon:'<i class="dirt-icon"></i>',name:'土块',hint:'可合成工具'},
+    {id:'iron',icon:'⛓',name:'铁块',hint:'可合成工具'}
   ];
   const beltEl=document.createElement('div');beltEl.id='toolbelt';
   // ★ 工具槽位 vs 资源槽位：工具显示「是否拥有」，资源显示数量

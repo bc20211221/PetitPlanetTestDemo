@@ -2,15 +2,14 @@ body:has(#game:not(.hidden)){overflow:hidden}
 .game{position:fixed;inset:0;min-height:0;height:100dvh;padding:0;display:block;overflow:hidden;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
 .game-main{display:block;position:absolute;inset:0}
 .game-stage{position:absolute;inset:0;min-height:0!important;border:0;border-radius:0;box-shadow:none}
+.game-stage canvas{min-width:0;min-height:0}
 .game-header{position:absolute;z-index:3;left:max(14px,env(safe-area-inset-left));right:max(14px,env(safe-area-inset-right));top:calc(12px + var(--safe-t));display:flex;gap:12px;min-height:0;pointer-events:none}
 .game-header>*{pointer-events:auto}
 .text-button{border:1px solid #eefbde9c;background:#f4ffe9ed;width:44px;height:44px;padding:0;font-size:30px}
 .game-heading{text-align:left;text-shadow:0 2px 7px #225468}
 .game-heading h2{font-size:20px}
 .eyebrow{font-size:12px}
-.clock{margin-left:auto;text-align:center;min-width:94px;padding:7px 12px;border:1px solid #d9efc777;border-radius:20px;background:#17576ac4}
-.clock strong{font-size:23px}
-.clock span{font-size:11px}
+.stamina{margin-left:auto;text-align:right;min-width:0}
 .hud-round{width:52px;height:52px;border:1px solid #ecf8ddc4;border-radius:50%;background:#f0f9e8ed;color:#2d676b;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:22px;font-weight:bold;box-shadow:0 3px 10px #1644504d}
 .hud-round small{font-size:11px}
 .sidebar{position:absolute;inset:0;display:block;pointer-events:none}
@@ -41,7 +40,7 @@ body:has(#game:not(.hidden)){overflow:hidden}
 .hotbar b{font-size:15px}
 .map-bottom{bottom:calc(160px + var(--safe-b));left:19%;right:19%}
 .map-bottom span{font-size:13px;line-height:1.45;border:0;background:#174f61a8;padding:7px 13px;max-width:100%}
-.toast{z-index:4;top:25%;bottom:auto;font-size:14px;border-radius:14px;box-shadow:0 4px 20px #16445277}
+.toast{z-index:4;top:16%;bottom:auto;font-size:13px;border-radius:14px;box-shadow:0 4px 20px #16445277}
 .bag-overlay{position:fixed;inset:0;z-index:20;background:#0a374a73;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:flex-end;padding:24px}
 .bag-panel{background:linear-gradient(140deg,#f8fbe6,#dbeedb);border:3px solid #f8e8b0;color:#325e63;width:min(390px,100%);max-height:90dvh;overflow:auto;border-radius:28px;padding:22px;box-shadow:0 25px 60px #0b3d5266}
 .bag-panel header{display:flex;justify-content:space-between;align-items:center}
@@ -73,25 +72,25 @@ body:has(#game:not(.hidden)){overflow:hidden}
 .text-button{width:35px;height:35px;font-size:24px}
 .game-heading h2{font-size:16px}
 .game-heading .eyebrow{font-size:10px}
-.clock{min-width:69px;padding:5px 8px}
-.clock strong{font-size:20px}
-.clock span{font-size:10px}
-.hud-round{width:41px;height:41px;font-size:18px}
-.hud-round small{font-size:10px}
-.mission{top:78px;left:12px;width:190px;padding:9px 11px}
-.mission h3{font-size:14px}
-.mission p{font-size:11px}
-.map-top{top:81px;right:10px}
-.dpad{left:12px;bottom:calc(64px + var(--safe-b));width:126px;height:126px;padding:9px;grid-template-columns:repeat(3,35px);grid-template-rows:repeat(3,35px)}
-.dpad button{width:35px;height:35px}
-.interact{right:18px;bottom:calc(70px + var(--safe-b));width:81px;height:81px}
-.interact span{font-size:18px}
-.quick-craft{right:18px;bottom:calc(172px + var(--safe-b));width:44px;height:44px}
-.hotbar{bottom:calc(13px + var(--safe-b));gap:4px;padding:5px}
-.hotbar span{font-size:16px;padding:5px 6px;gap:4px}
-.hotbar b{font-size:12px}
-.map-bottom{bottom:calc(214px + var(--safe-b));left:10px;right:10px}
-.map-bottom span{font-size:12px}
+.stamina{min-width:0}
+.stamina strong{font-size:14px}
+.stamina span{font-size:10px}
+.hud-round{width:38px;height:38px;font-size:16px}
+.hud-round small{font-size:9px}
+.mission{top:calc(62px + var(--safe-t));left:10px;width:auto;max-width:170px;padding:7px 10px;border-radius:14px}
+.mission h3{font-size:13px;margin:0 0 4px}
+.mission p{display:none}
+.mission .progress-line{font-size:11px;padding-top:5px}
+.map-top{top:calc(62px + var(--safe-t));right:10px}
+.dpad{left:10px;bottom:calc(60px + var(--safe-b));width:112px;height:112px;padding:8px;grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+.dpad button{width:32px;height:32px}
+.interact{right:14px;bottom:calc(62px + var(--safe-b));width:72px;height:72px;border-width:3px}
+.interact span{font-size:16px}
+.quick-craft{right:14px;bottom:calc(144px + var(--safe-b));width:42px;height:42px}
+#toolbelt{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100% - 12px);gap:3px;padding:5px 6px;bottom:calc(6px + var(--safe-b));scrollbar-width:none}
+#toolbelt::-webkit-scrollbar{display:none}
+.tb-slot{flex:0 0 auto;width:38px;height:44px}
+.tb-slot i{font-size:15px}
 .bag-overlay{align-items:flex-end;padding:9px}
 .bag-panel{width:100%;max-height:85dvh;padding:20px;border-radius:26px 26px 18px 18px}
 .npc-dialogue{padding:18px 13px calc(20px + env(safe-area-inset-bottom))}
@@ -105,12 +104,13 @@ body:has(#game:not(.hidden)){overflow:hidden}
 }
 @media(max-height:540px) and (min-width:601px){.mission{top:75px;max-width:195px}
 .mission p{display:none}
-.map-top{top:80px}
-.dpad{width:126px;height:126px;padding:9px;grid-template-columns:repeat(3,35px);grid-template-rows:repeat(3,35px);bottom:16px}
-.dpad button{width:35px;height:35px}
-.interact{width:82px;height:82px;bottom:22px}
-.quick-craft{bottom:23px}
-.map-bottom{bottom:115px}
+.map-top{top:calc(56px + var(--safe-t))}
+.dpad{width:118px;height:118px;padding:8px;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,34px);bottom:10px}
+.dpad button{width:34px;height:34px}
+.interact{width:76px;height:76px;bottom:14px;border-width:3px}
+.quick-craft{bottom:calc(100px + var(--safe-b,0px));width:42px;height:42px}
+#toolbelt{flex-wrap:nowrap;overflow-x:auto;max-width:calc(100% - 16px);bottom:4px;gap:3px;padding:4px 6px;scrollbar-width:none}
+#toolbelt::-webkit-scrollbar{display:none}
 .npc-dialogue{flex-direction:row;gap:24px;align-items:center;padding:35px}
 .dialogue-character{margin:0}
 .dialogue-character canvas{width:150px;height:150px}
